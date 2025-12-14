@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        #table1{
-            width: 10%;
-            padding: 5px;
-        }
+        
         #name1,#email1,#phoneNumber1,#dob1,#year1,#salary1,#photo1{
             margin: 0px;
             text-align: left;
@@ -216,6 +213,9 @@ required6.style.width="100%";
 form.appendChild(required6)
 const breakTag = document.createElement("br");
 const inputImg = document.createElement("input");
+inputImg.type = "file";
+inputImg.id = "profile";
+inputImg.style.display="none";
 const upload = document.createElement("label");
 upload.htmlFor = "profile"
 upload.innerText = "upload";
@@ -231,18 +231,15 @@ upload.style.marginTop="5px";
 upload.style.padding="3px";
 upload.style.fontSize = "17px"
 form.appendChild(upload);
-inputImg.type = "file";
-inputImg.id = "profile";
-inputImg.style.display="none";
 form.appendChild(inputImg);
-
-const fileName = document.createElement("p");
-fileName.id = "fileName";
-form.appendChild(fileName);
 
 const photoError = document.createElement('p');
 photoError.id='photoError';
 form.appendChild(photoError);
+
+const fileName = document.createElement("p");
+fileName.id = "fileName";
+form.appendChild(fileName);
 
 const previewImg = document.createElement("img");
 previewImg.id = "preview";
@@ -253,12 +250,10 @@ previewImg.style.display = "none";
 form.appendChild(previewImg);
 
 let previousFile = null;
-const fileNameDisplay = document.getElementById("fileName");
-profile.addEventListener("change", function () {
-    fileNameDisplay.textContent = this.value.split("\\").pop();
-})
 profile.addEventListener("change", function () {
     const file = this.files[0];
+    const fileNameDisplay = document.getElementById("fileName");
+    fileNameDisplay.textContent = this.value.split("\\").pop();
     if (file) {
         const reader = new FileReader();
         reader.onload = function () {
@@ -273,11 +268,7 @@ profile.addEventListener("change", function () {
         clearImagePreview();
     }
 });
-profile.addEventListener("cancel",function(event){
-    clearImagePreview();
-})
 function clearImagePreview(){
-    previewImg.src="#";
     previewImg.style.display="none";
     inputImg.value = "";
     previousFile = null;
@@ -341,15 +332,19 @@ if (editIndex !== null) {
     document.getElementById("dob").value = emp.dob;
     document.getElementById("yoj").value = emp.yoj;
     document.getElementById("salary").value = emp.salary;
+    if(emp.profile){
+        previewImg.src=emp.profile;
+        previewImg.style.display="block";
+        fileName.textContent="Existing image";
+    }
 
     btn.innerText = "Update";
 }
-function getEmployees() {
-    return JSON.parse(localStorage.getItem("employees") || "[]");
-}
-
 function saveEmployees(data) {
     localStorage.setItem("employees", JSON.stringify(data));
+}
+function getEmployees() {
+    return JSON.parse(localStorage.getItem("employees") || "[]");
 }
 
 function resetForm() {
@@ -362,67 +357,73 @@ function resetForm() {
 
 function validateForm(name, email, mobile, dob, yoj, salary, profileFile) {
     const currentYear = new Date().getFullYear();
+    let employees = getEmployees()
+    const duplicateEmail = employees.some((e, i) => e.email === email && i !== editIndex);
+    const duplicateMobile = employees.some((e, i) => e.mobile === mobile && i !== editIndex);
     let valid = true;
     if(!name){
-        document.getElementById("nameError").innerText = "Name is required.";
+        nameError.innerText = "Name is required.";
         valid = false;
-    }else if (name.length < 3 || /[^a-zA-Z ]/.test(name)) {
-        document.getElementById("nameError").innerText = "Name must be at least 3 letters and contain no numbers.";
+    }else if (name.length < 3) {
+        nameError.innerText = "Name must be at least 3 letters.";
         valid = false;
     }else{
-        document.getElementById("nameError").innerText = "";
+        nameError.innerText = "";
     }
     if (!email) {
-        document.getElementById("emailError").innerText = "Email is required.";
+        emailError.innerText = "Email is required.";
         valid = false;
     }else if (!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
-        document.getElementById("emailError").innerText = "Invalid email format.";
+        emailError.innerText = "Invalid email format.";
         valid = false;
-    }else{
-        document.getElementById("emailError").innerText = "";
+    }else if (duplicateEmail) {
+        emailError.innerText = "Email already exists.";
+        return;
+    } else {
+        emailError.innerText = "";
     }
     if (!mobile) {
-        document.getElementById("mobileError").innerText = "Mobile is required.";
+        mobileError.innerText = "Mobile is required.";
         valid = false;
     }else if (!mobile.match(/^[0-9]{10}$/)) {
-        document.getElementById("mobileError").innerText = "Mobile must be exactly 10 digits.";
+        mobileError.innerText = "Mobile must be exactly 10 digits.";
         valid = false;
-    }else{
-        document.getElementById("mobileError").innerText = "";
+    }else if (duplicateMobile) {
+        mobileError.innerText = "Mobile number already exists.";
+        return;
+    } else {
+        mobileError.innerText = "";
     }
 
     if (!dob) {
-        document.getElementById("dobError").innerText = "Date Of Birth is required";
+        dobError.innerText = "Date Of Birth is required";
         valid = false;
     }else{
-        document.getElementById("dobError").innerText = "";
+        dobError.innerText = "";
     }
 
     if (!yoj) {
-        document.getElementById("yojError").innerText = "Year is required.";
+        yojError.innerText = "Year is required.";
         valid = false;
-    }else if (!yoj.match(/^[0-9]/) || yoj < 1990 || yoj > currentYear) {
-        document.getElementById("yojError").innerText = "Year of joining must be between 1990 and current year.";
+    }else if (yoj < 1990 || yoj > currentYear) {
+        yojError.innerText = `"Year of joining must be between 1990 and ${currentYear}."`;
         valid = false;
     }else{
-        document.getElementById("yojError").innerText = "";
+        yojError.innerText = "";
     }
 
     if (!salary) {
-        document.getElementById("salaryError").innerText = "Salary is required.";
-        valid = false;
-    }else if (!salary.match(/^[0-9]/) || salary <= 0) {
-        document.getElementById("salaryError").innerText = "Salary must be a positive number.";
+        salaryError.innerText = "Salary is required.";
         valid = false;
     }else{
-        document.getElementById("salaryError").innerText = "";
+        salaryError.innerText = "";
     }
 
     if (!profileFile && editIndex === null) {
-        document.getElementById("photoError").innerText = "Please upload a profile picture.";
+        photoError.innerText = "Please upload a profile picture.";
         valid = false;
     }else{
-        document.getElementById("photoError").innerText = "";
+        photoError.innerText = "";
     }
 
     return valid;
@@ -446,8 +447,8 @@ function compressImage(file, maxWidth = 200, maxHeight = 200, quality = 0.7,call
             }
             canvas.width = width;
             canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
+            const context = canvas.getContext("2d");
+            context.drawImage(img, 0, 0, width, height);
             const compressedData = canvas.toDataURL("image/jpeg",quality);
             callback(compressedData);
         }
@@ -460,34 +461,16 @@ form.addEventListener("submit", function (e) {
     e.preventDefault();
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
-    const mobile = document.getElementById("mobile").value.trim();
+    const mobile = document.getElementById("mobile").value;
     const dob = document.getElementById("dob").value;
     const yoj = document.getElementById("yoj").value;
-    const salary = document.getElementById("salary").value;
+    const salary = document.getElementById("salary").value.trim();
     const profileFile = document.getElementById("profile").files[0];
     
     if (!validateForm(name, email, mobile, dob, yoj, salary, profileFile)) return;
 
-    
-    let employees = getEmployees()
-    const duplicateEmail = employees.some((e, i) => e.email === email && i !== editIndex);
-    const duplicateMobile = employees.some((e, i) => e.mobile === mobile && i !== editIndex);
-
-    if (duplicateEmail) {
-        emailError.innerText = "Email already exists.";
-        return;
-    } else {
-        emailError.innerText = "";
-    }
-
-    if (duplicateMobile) {
-        mobileError.innerText = "Mobile number already exists.";
-        return;
-    } else {
-        mobileError.innerText = "";
-    }
-
     const reader = new FileReader();
+    let employees = getEmployees() 
     if (profileFile) {
     compressImage(profileFile, 200, 200, 0.6, function(compressedBase64) {
 
@@ -499,8 +482,7 @@ form.addEventListener("submit", function (e) {
             dob,
             yoj,
             salary
-        };
-
+        }; 
         if (editIndex === null) {
             employees.push(empData);
         } else {
