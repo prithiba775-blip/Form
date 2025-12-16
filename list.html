@@ -54,7 +54,6 @@ tbody.id="tbody"
 table.appendChild(tbody);
 
 function renderTable() {
-    tbody.innerHTML = "";
     const employees = getEmployees();
 
     employees.forEach((emp, index) => {
@@ -63,6 +62,7 @@ function renderTable() {
         tbody.appendChild(tr2);
 
         const td1 = document.createElement("td")
+        tr2.appendChild(td1);
         const image = document.createElement("img");
         image.src= emp.profile;
         image.style.height = ("50px");
@@ -71,7 +71,6 @@ function renderTable() {
         image.style.marginLeft = "10px";
         td1.id="table1";
         td1.appendChild(image);
-        tr2.appendChild(td1);
 
         data = [
             emp.name,
@@ -90,6 +89,7 @@ function renderTable() {
         })
 
         const actions = document.createElement("td")
+        tr2.appendChild(actions);
         const viewbtn = document.createElement("button");
         viewbtn.onclick=() => viewEmployee(index);
         viewbtn.textContent = "View";
@@ -107,7 +107,6 @@ function renderTable() {
         deletebtn.textContent = "Delete";
         deletebtn.style.marginLeft = "5px"
         actions.appendChild(deletebtn);
-        tr2.appendChild(actions);
         
     });
 }
